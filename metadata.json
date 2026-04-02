@@ -1,0 +1,5 @@
+{
+  "name": "WebSalasDeEnsayo.Version2.26",
+  "description": "Salas de Ensayo v2.26: Configuración completa de base de datos Supabase y preparación para despliegue en Render.",
+  "requestFramePermissions": []
+}

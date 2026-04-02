@@ -1,0 +1,28 @@
+USUARIOS Y CLAVES - SALAS CALACUTA
+
+ADMINISTRADORES (Acceso Total):
+- Usuario: Encargado | Clave: S41a5_=dE!#3nSaY0
+- Usuario: uruguayo | Clave: Male&Tefi2017_Malaver
+- Usuario: leo      | Clave: Zky76%13!QXb (Acceso Staff)
+
+PERSONAL (STAFF):
+- Clave general para todos: Zky76%13!QXb
+- Usuarios:
+  - zequi
+  - nacho
+  - mai
+  - ove
+  - abi
+  - santi
+  - marian
+  - leo
+
+EVENTOS:
+- Usuario: eventos | Clave: Ev/_1A$LPtdx
+
+RESERVAS (Gestión):
+- Usuario: reservas | Clave: PuBLicRoCk(Ciclon!27
+
+CLIENTES (Bandas):
+- Los clientes ingresan con su nombre de banda o nombre de responsable.
+- La clave es la que se les asigne al crearlos en la sección de Contactos.
