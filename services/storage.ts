@@ -1,5 +1,5 @@
 
-import { INITIAL_PRODUCTS, INITIAL_MAINTENANCE, ROOMS as INITIAL_ROOMS, INITIAL_INCOME_CATEGORIES, INITIAL_EXPENSE_CATEGORIES, INITIAL_STAFF_USERS, DEFAULT_HEADER_LINKS } from '../constants';
+import { INITIAL_PRODUCTS, INITIAL_MAINTENANCE, ROOMS as INITIAL_ROOMS, INITIAL_INCOME_CATEGORIES, INITIAL_EXPENSE_CATEGORIES, INITIAL_STAFF_USERS, DEFAULT_HEADER_LINKS, DEFAULT_POINTS_RULES, DEFAULT_POINTS_REWARDS, DEFAULT_MAIN_PHOTO } from '../constants';
 import { Product, Reservation, Transaction, User, MaintenanceItem, Consumption, Contact, Room, StaffShift, PendingTask, GlobalConfig } from '../types';
 import { supabase } from './supabase';
 
@@ -41,7 +41,10 @@ export const initDB = () => {
       staffUsers: INITIAL_STAFF_USERS,
       incomeCategories: INITIAL_INCOME_CATEGORIES,
       expenseCategories: INITIAL_EXPENSE_CATEGORIES,
-      headerLinks: DEFAULT_HEADER_LINKS
+      headerLinks: DEFAULT_HEADER_LINKS,
+      mainPhoto: DEFAULT_MAIN_PHOTO,
+      pointsRules: DEFAULT_POINTS_RULES,
+      pointsRewards: DEFAULT_POINTS_REWARDS
     };
     localStorage.setItem(KEYS.CONFIG, JSON.stringify(defaultConfig));
   }
@@ -212,7 +215,10 @@ export const storage = {
       staffUsers: INITIAL_STAFF_USERS,
       incomeCategories: INITIAL_INCOME_CATEGORIES,
       expenseCategories: INITIAL_EXPENSE_CATEGORIES,
-      headerLinks: DEFAULT_HEADER_LINKS
+      headerLinks: DEFAULT_HEADER_LINKS,
+      mainPhoto: DEFAULT_MAIN_PHOTO,
+      pointsRules: DEFAULT_POINTS_RULES,
+      pointsRewards: DEFAULT_POINTS_REWARDS
     };
   },
   saveConfig: async (config: GlobalConfig) => {
@@ -226,7 +232,30 @@ export const storage = {
     localStorage.setItem(KEYS.CONSUMPTION, JSON.stringify([]));
     localStorage.setItem(KEYS.CONTACTS, JSON.stringify([]));
     localStorage.setItem(KEYS.INITIAL_CASH, '0');
-    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(INITIAL_PRODUCTS));
-    localStorage.setItem(KEYS.MAINTENANCE, JSON.stringify(INITIAL_MAINTENANCE));
+    localStorage.setItem(KEYS.ROOMS, JSON.stringify([]));
+    
+    // Reset products stock to 0
+    const products: Product[] = JSON.parse(localStorage.getItem(KEYS.PRODUCTS) || '[]');
+    const resetProducts = products.map(p => ({ ...p, stock: 0 }));
+    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(resetProducts));
+    
+    localStorage.setItem(KEYS.MAINTENANCE, JSON.stringify([]));
+    localStorage.setItem(KEYS.SHIFTS, JSON.stringify([]));
+    localStorage.setItem(KEYS.PENDING_TASKS, JSON.stringify([]));
+
+    // Clear Supabase if configured
+    const tables = ['reservations', 'transactions', 'consumptions', 'contacts', 'maintenance', 'shifts', 'pending_tasks', 'rooms'];
+    for (const table of tables) {
+      await supabase.from(table).delete().neq('id', '0'); // Delete all
+    }
+    
+    // Update products in Supabase
+    if (resetProducts.length > 0) {
+      await supabase.from('products').upsert(resetProducts);
+    }
+
+    // Update config in Supabase
+    const config = storage.getConfig();
+    await supabase.from('config').upsert([{ ...config, initialCash: 0 }]);
   }
 };

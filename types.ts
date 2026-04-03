@@ -22,6 +22,8 @@ export interface GlobalConfig {
   expenseCategories: string[];
   headerLinks: { label: string; url: string; image?: string }[]; // Added image
   mainPhoto?: string;
+  pointsRules?: { id: string; label: string; description: string }[];
+  pointsRewards?: { id: string; label: string; points: number; description: string }[];
 }
 
 export interface User {
@@ -32,6 +34,7 @@ export interface User {
   phone?: string;
   password?: string;
   responsibleName?: string;
+  permissions?: string[];
 }
 
 export enum RoomColor {

@@ -1,5 +1,5 @@
 
-// Version: 2.05 - Migrated to Supabase
+// Version: 2.29 - Reset to Zero refinement
 import React, { useEffect, useState } from 'react';
 import { Header } from './components/Header';
 import { Login } from './components/Login';
@@ -975,37 +975,31 @@ const App: React.FC = () => {
       await wrapSync(() => storage.saveContacts(newContacts, finalContact), "Contacto actualizado y sincronizado");
   };
 
-  const handleApplyReward = (contactId: string, rewardType: 'IPA' | 'PIZZA' | 'DISCOUNT' | 'RECORDING') => {
+  const handleApplyReward = (contactId: string, rewardId: string) => {
       const contact = contacts.find(c => c.id === contactId);
       if (!contact) return;
 
-      let pointsToSubtract = 0;
-      let stockUpdates: { productId: string, quantity: number }[] = [];
+      const reward = (globalConfig.pointsRewards || []).find(r => r.id === rewardId);
+      if (!reward) return;
 
-      switch (rewardType) {
-          case 'IPA':
-              pointsToSubtract = 25;
-              const ipa = products.find(p => p.name.includes('IPA Lager'));
-              if (ipa) stockUpdates.push({ productId: ipa.id, quantity: 2 });
-              break;
-          case 'PIZZA':
-              pointsToSubtract = 50;
-              const pizza = products.find(p => p.name.includes('Pizza'));
-              if (pizza) stockUpdates.push({ productId: pizza.id, quantity: 1 });
-              break;
-          case 'DISCOUNT':
-              pointsToSubtract = 75;
-              break;
-          case 'RECORDING':
-              pointsToSubtract = 100;
-              const recording = products.find(p => p.name.includes('Grabación'));
-              if (recording) stockUpdates.push({ productId: recording.id, quantity: 1 });
-              break;
-      }
-
-      if ((contact.points || 0) < pointsToSubtract) {
+      if ((contact.points || 0) < reward.points) {
           alert("Puntos insuficientes");
           return;
+      }
+
+      const rewardType = reward.label;
+      let stockUpdates: { productId: string; quantity: number }[] = [];
+
+      // Logic for stock reduction based on reward label keywords
+      if (rewardType.toLowerCase().includes('ipa')) {
+          const ipa = products.find(p => p.name.toLowerCase().includes('ipa'));
+          if (ipa) stockUpdates.push({ productId: ipa.id, quantity: 2 });
+      } else if (rewardType.toLowerCase().includes('pizza')) {
+          const pizza = products.find(p => p.name.toLowerCase().includes('pizza'));
+          if (pizza) stockUpdates.push({ productId: pizza.id, quantity: 1 });
+      } else if (rewardType.toLowerCase().includes('grabación')) {
+          const recording = products.find(p => p.name.toLowerCase().includes('grabación'));
+          if (recording) stockUpdates.push({ productId: recording.id, quantity: 1 });
       }
 
       // Update stock
@@ -1018,18 +1012,19 @@ const App: React.FC = () => {
 
       // Update points history (negative entry)
       const newEntry: PointEntry = {
-          amount: -pointsToSubtract,
+          amount: -reward.points,
           date: new Date().toISOString(),
-          reason: `Canje de premio: ${rewardType}`
+          reason: `Canje de premio: ${reward.label}`
       };
 
       const updatedContact = {
           ...contact,
+          points: (contact.points || 0) - reward.points,
           pointsHistory: [...(contact.pointsHistory || []), newEntry]
       };
 
       handleUpdateContact(updatedContact);
-      alert(`Premio ${rewardType} aplicado con éxito.`);
+      alert(`Premio "${reward.label}" aplicado con éxito.`);
   };
 
   const handleDeleteContact = async (id: string, reason: string) => {
@@ -1098,6 +1093,21 @@ const App: React.FC = () => {
               console.log("[Cloud Export] Monthly Drive Folder created with daily excels and summary.");
               
               await storage.clearAllData();
+              
+              // Update local state
+              setReservations([]);
+              setTransactions([]);
+              setConsumptions([]);
+              setContacts([]);
+              setInitialCash(0);
+              setRooms([]);
+              setShifts([]);
+              setPendingTasks([]);
+              setMaintenance([]);
+              
+              // Reset products stock to 0 in local state
+              setProducts(prev => prev.map(p => ({ ...p, stock: 0 })));
+              
               setIsSyncing(false);
               showModal({
                   title: "SISTEMA REINICIADO",
@@ -1432,7 +1442,7 @@ const App: React.FC = () => {
             {/* OVEJA (ADMIN) */}
             {currentUser.role === UserRole.ADMIN && (
                 <>
-                    {currentUser.username.toLowerCase() === 'uruguayo' && (
+                    {(currentUser.username.toLowerCase() === 'uruguayo' || currentUser.username.toLowerCase() === 'encargado') && (
                         <TabButton active={view === 'reservas'} onClick={() => setView('reservas')}>Agenda</TabButton>
                     )}
                     <TabButton active={view === 'contactos'} onClick={() => setView('contactos')}>Contactos</TabButton>
@@ -1456,24 +1466,30 @@ const App: React.FC = () => {
             {/* PERSONAL (STAFF) */}
             {currentUser.role === UserRole.STAFF && (
                 <>
-                    {(!currentUser.password || (globalConfig.staffUsers.find(u => u.name === currentUser.username)?.permissions?.includes('bandas'))) && (
-                      <TabButton active={view === 'bandas'} onClick={() => setView('bandas')}>Bandas</TabButton>
-                    )}
-                    {(!currentUser.password || (globalConfig.staffUsers.find(u => u.name === currentUser.username)?.permissions?.includes('barra_banda'))) && (
-                      <TabButton active={view === 'barra_banda'} onClick={() => setView('barra_banda')}>Barra Banda</TabButton>
-                    )}
-                    {(!currentUser.password || (globalConfig.staffUsers.find(u => u.name === currentUser.username)?.permissions?.includes('barra'))) && (
-                      <TabButton active={view === 'barra'} onClick={() => setView('barra')}>Barra</TabButton>
-                    )}
-                    {(!currentUser.password || (globalConfig.staffUsers.find(u => u.name === currentUser.username)?.permissions?.includes('vitrina'))) && (
-                      <TabButton active={view === 'vitrina'} onClick={() => setView('vitrina')}>Vitrina</TabButton>
-                    )}
-                    {(!currentUser.password || (globalConfig.staffUsers.find(u => u.name === currentUser.username)?.permissions?.includes('instrumentos'))) && (
-                      <TabButton active={view === 'instrumentos'} onClick={() => setView('instrumentos')}>Instrumentos</TabButton>
-                    )}
-                    {(!currentUser.password || (globalConfig.staffUsers.find(u => u.name === currentUser.username)?.permissions?.includes('cierre'))) && (
-                      <TabButton active={view === 'cierre'} onClick={() => setView('cierre')}>Cierre</TabButton>
-                    )}
+                    {(currentUser.permissions?.includes('bandas') || !currentUser.permissions) && <TabButton active={view === 'bandas'} onClick={() => setView('bandas')}>Bandas</TabButton>}
+                    {(currentUser.permissions?.includes('barra_banda') || !currentUser.permissions) && <TabButton active={view === 'barra_banda'} onClick={() => setView('barra_banda')}>Barra Banda</TabButton>}
+                    {(currentUser.permissions?.includes('barra') || !currentUser.permissions) && <TabButton active={view === 'barra'} onClick={() => setView('barra')}>Barra</TabButton>}
+                    {(currentUser.permissions?.includes('vitrina') || !currentUser.permissions) && <TabButton active={view === 'vitrina'} onClick={() => setView('vitrina')}>Vitrina</TabButton>}
+                    {(currentUser.permissions?.includes('instrumentos') || !currentUser.permissions) && <TabButton active={view === 'instrumentos'} onClick={() => setView('instrumentos')}>Instrumentos</TabButton>}
+                    {(currentUser.permissions?.includes('cierre') || !currentUser.permissions) && <TabButton active={view === 'cierre'} onClick={() => setView('cierre')}>Cierre</TabButton>}
+                    
+                    {/* Additional tabs if permitted */}
+                    {currentUser.permissions?.includes('reservas') && <TabButton active={view === 'reservas'} onClick={() => setView('reservas')}>Agenda</TabButton>}
+                    {currentUser.permissions?.includes('contactos') && <TabButton active={view === 'contactos'} onClick={() => setView('contactos')}>Contactos</TabButton>}
+                    {currentUser.permissions?.includes('personal') && <TabButton active={view === 'personal'} onClick={() => setView('personal')}>Personal</TabButton>}
+                    {currentUser.permissions?.includes('stock') && <TabButton active={view === 'stock'} onClick={() => setView('stock')}>Stock</TabButton>}
+                    {currentUser.permissions?.includes('caja') && <TabButton active={view === 'caja'} onClick={() => setView('caja')}>Caja</TabButton>}
+                    {currentUser.permissions?.includes('pagos') && <TabButton active={view === 'pagos'} onClick={() => setView('pagos')}>Pagos</TabButton>}
+                    {currentUser.permissions?.includes('cobros') && <TabButton active={view === 'cobros'} onClick={() => setView('cobros')}>Cobros</TabButton>}
+                    {currentUser.permissions?.includes('precios') && <TabButton active={view === 'precios'} onClick={() => setView('precios')}>Precios</TabButton>}
+                    {currentUser.permissions?.includes('puntos') && <TabButton active={view === 'puntos'} onClick={() => setView('puntos')}>Puntos</TabButton>}
+                    {currentUser.permissions?.includes('mantenimiento') && <TabButton active={view === 'mantenimiento'} onClick={() => setView('mantenimiento')}>Mantenimiento</TabButton>}
+                    {currentUser.permissions?.includes('admin_salas') && <TabButton active={view === 'admin_salas'} onClick={() => setView('admin_salas')}>Salas</TabButton>}
+                    {currentUser.permissions?.includes('encabezado') && <TabButton active={view === 'encabezado'} onClick={() => setView('encabezado')}>Encabezado</TabButton>}
+                    {currentUser.permissions?.includes('administracion') && <TabButton active={view === 'administracion'} onClick={() => setView('administracion')}>Administración</TabButton>}
+                    {currentUser.permissions?.includes('resumen_mensual') && <TabButton active={view === 'resumen_mensual'} onClick={() => setView('resumen_mensual')}>Resumen Mensual</TabButton>}
+                    {currentUser.permissions?.includes('pendientes') && <TabButton active={view === 'pendientes'} onClick={() => setView('pendientes')}>Pendientes</TabButton>}
+                    {currentUser.permissions?.includes('agenda') && <TabButton active={view === 'agenda'} onClick={() => setView('agenda')}>Agenda</TabButton>}
                 </>
             )}
 
@@ -1619,6 +1635,9 @@ const App: React.FC = () => {
                 consumptions={consumptions} 
                 products={products}
                 onUpdateContact={handleUpdateContact}
+                onApplyReward={handleApplyReward}
+                config={globalConfig}
+                onUpdateConfig={handleUpdateGlobalConfig}
             />}
 
             {view === 'mantenimiento' && <MaintenanceView 
@@ -1716,7 +1735,7 @@ const App: React.FC = () => {
             />}
 
             {/* RESERVAS VIEWS */}
-            {view === 'sync' && <CalendarSyncView onSync={handleSyncCalendar} />}
+            {view === 'sync' && <CalendarSyncView reservations={reservations} onSyncComplete={handleSyncCalendar} />}
             {/* {view === 'chat' && <ChatView />} */}
             {view === 'reservas_view' && <ReservasUserView 
                 reservations={reservations} 
@@ -1970,7 +1989,7 @@ const App: React.FC = () => {
         </main>
       </div>
       <div className="fixed bottom-4 left-4 z-[200] pointer-events-none">
-        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D2B48C]/40">v2.26</span>
+        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D2B48C]/40">v2.29</span>
       </div>
 
       <CustomModal 

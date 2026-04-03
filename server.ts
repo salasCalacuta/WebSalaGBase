@@ -147,7 +147,7 @@ async function startServer() {
 
   // 3. Sync to Google Calendar
   app.post("/api/calendar/sync", async (req, res) => {
-    const { reservations, tokens } = req.body;
+    const { reservations, tokens, calendarId = "primary", targetEmail } = req.body;
     
     if (!tokens) {
       return res.status(401).json({ error: "No se proporcionaron tokens de acceso" });
@@ -167,8 +167,13 @@ async function startServer() {
         const startDateTime = `${resv.date}T${resv.timeStart}:00`;
         const endDateTime = `${resv.date}T${resv.timeEnd}:00`;
 
+        const attendees = [];
+        if (targetEmail) {
+          attendees.push({ email: targetEmail });
+        }
+
         await calendar.events.insert({
-          calendarId: "primary",
+          calendarId: calendarId,
           requestBody: {
             summary: `Ensayo: ${resv.bandName}`,
             description: `Sala: ${resv.roomId}\nEstado: ${resv.status}`,
@@ -180,6 +185,7 @@ async function startServer() {
               dateTime: new Date(endDateTime).toISOString(),
               timeZone: "America/Argentina/Buenos_Aires",
             },
+            attendees: attendees.length > 0 ? attendees : undefined,
           },
         });
       }
@@ -193,7 +199,7 @@ async function startServer() {
 
   // 4. Sync FROM Google Calendar
   app.get("/api/calendar/fetch", async (req, res) => {
-    const { tokens } = req.query;
+    const { tokens, calendarId = "primary" } = req.query;
     
     if (!tokens) {
       return res.status(401).json({ error: "No se proporcionaron tokens de acceso" });
@@ -208,7 +214,7 @@ async function startServer() {
       const calendar = google.calendar({ version: "v3", auth: client });
 
       const response = await calendar.events.list({
-        calendarId: "primary",
+        calendarId: calendarId as string,
         timeMin: new Date().toISOString(),
         maxResults: 50,
         singleEvents: true,

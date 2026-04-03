@@ -448,7 +448,12 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                     <div className="space-y-2">
                       <p className="text-[10px] text-[#D2B48C] font-bold uppercase tracking-widest">Permisos de Acceso</p>
                       <div className="grid grid-cols-2 gap-2">
-                        {['bandas', 'barra_banda', 'barra', 'vitrina', 'instrumentos', 'cierre'].map(perm => (
+                        {[
+                          'bandas', 'barra_banda', 'barra', 'vitrina', 'instrumentos', 'cierre',
+                          'reservas', 'contactos', 'personal', 'stock', 'caja', 'pagos', 'cobros',
+                          'precios', 'puntos', 'mantenimiento', 'admin_salas', 'encabezado',
+                          'administracion', 'resumen_mensual', 'pendientes', 'agenda'
+                        ].map(perm => (
                           <label key={perm} className="flex items-center gap-2 cursor-pointer group">
                             <input 
                               type="checkbox" 
@@ -469,7 +474,15 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                     </div>
                   </div>
                 ))}
-                <Button variant="secondary" onClick={() => addItem('staffUsers', { name: '', permissions: ['bandas', 'barra_banda', 'barra', 'vitrina', 'instrumentos', 'cierre'] })} className="w-full py-2">
+                <Button variant="secondary" onClick={() => addItem('staffUsers', { 
+                  name: '', 
+                  permissions: [
+                    'bandas', 'barra_banda', 'barra', 'vitrina', 'instrumentos', 'cierre',
+                    'reservas', 'contactos', 'personal', 'stock', 'caja', 'pagos', 'cobros',
+                    'precios', 'puntos', 'mantenimiento', 'admin_salas', 'encabezado',
+                    'administracion', 'resumen_mensual', 'pendientes', 'agenda'
+                  ] 
+                })} className="w-full py-2">
                   <Plus size={16} className="mr-2" /> Agregar Personal
                 </Button>
               </div>

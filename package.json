@@ -1,7 +1,7 @@
 {
-  "name": "WebSalasDeEnsayo.Version2.26",
+  "name": "WebSalasDeEnsayo.Version2.29",
   "private": true,
-  "version": "2.26.0",
+  "version": "2.29.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

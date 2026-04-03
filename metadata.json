@@ -1,5 +1,5 @@
 {
-  "name": "WebSalasDeEnsayo.Version2.26",
-  "description": "Salas de Ensayo v2.26: Configuración completa de base de datos Supabase y preparación para despliegue en Render.",
+  "name": "WebSalasDeEnsayo.Version2.29",
+  "description": "WebSalasDeEnsayo v2.29: Reset to Zero refinement, Room/Contact/Stock/Cash clearing.",
   "requestFramePermissions": []
 }

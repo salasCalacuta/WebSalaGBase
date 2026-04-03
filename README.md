@@ -1,4 +1,25 @@
-# WebSalasDeEnsayo.Version2.26
+# WebSalasDeEnsayo.Version2.29
+
+## Cambios y Mejoras - Versión 2.29
+
+### 1. Refinamiento de "Reinicio a Cero" (Reset to Zero)
+- Se corrigió la función de reinicio para asegurar una limpieza total de los datos operativos y precargados.
+- **Salas:** La solapa de salas ahora se vacía por completo, eliminando nombres, configuraciones y fotos.
+- **Caja y Movimientos:** Se resetean los saldos de caja a cero y se eliminan todos los movimientos históricos de transacciones.
+- **Stock:** Se implementó una lógica para poner en cero el stock de todos los ítems de la barra y vitrina, manteniendo los productos pero sin existencias.
+- **Contactos y Bandas:** Se eliminan todos los registros de contactos y bandas del sistema.
+- **Sincronización en la Nube:** El reinicio ahora también limpia las tablas correspondientes en Supabase, garantizando que la base de datos en la nube quede sincronizada con el estado "vacío".
+
+### 2. Actualización de Identidad y Versión
+- El proyecto ha sido oficialmente renombrado a **WebSalasDeEnsayo.Version2.29**.
+- Se actualizó el número de versión en todos los archivos de configuración (`package.json`, `metadata.json`), el pie de página de la aplicación y los metadatos de despliegue.
+
+### 3. Mantenimiento de Estética y Lógica
+- Se preservó la estructura, lógica de permisos y estética visual (dorado/negro) implementada en versiones anteriores.
+
+---
+
+## Cambios y Mejoras - Versión 2.28
 
 ## Cambios y Mejoras - Versión 2.26
 

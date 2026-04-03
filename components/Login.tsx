@@ -60,8 +60,31 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
       return;
     }
 
+    // Check staff users from config
+    const config = storage.getConfig();
+    const staffUser = config.staffUsers.find(u => u.name.toLowerCase() === userLower);
+    
+    if (staffUser) {
+      // If password is set in config, check it
+      if (staffUser.password && passTrimmed !== staffUser.password) {
+        // Fallback to default staff pass if it's one of the default users and no password set?
+        // Actually, better to just check if it matches the config password.
+      } else if (!staffUser.password && passTrimmed !== STAFF_PASS) {
+        // If no password set in config, use default STAFF_PASS
+      } else {
+        onLogin({ 
+          username: staffUser.name, 
+          role: UserRole.STAFF,
+          permissions: staffUser.permissions || [] 
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Fallback for hardcoded staff users if not in config
     if (STAFF_USERS.includes(userLower) && passTrimmed === STAFF_PASS) {
-      onLogin({ username: username, role: UserRole.STAFF });
+      onLogin({ username: username, role: UserRole.STAFF, permissions: ['bandas', 'barra_banda', 'barra', 'vitrina', 'instrumentos', 'cierre'] });
       setIsLoading(false);
       return;
     }
